@@ -122,7 +122,7 @@ class ParserLibClang:
             "type": "enum",
             "underlying_type": cursor.enum_type.spelling,
             "extent": _get_extent(cursor),
-            "values": {}
+            "enum_values": {}
         }
 
         if len(path) > 1:
@@ -132,7 +132,7 @@ class ParserLibClang:
             if value.kind == CursorKind.ANNOTATE_ATTR:
                 result["annotations"] = _parse_annotation(value.spelling)
             elif value.kind == CursorKind.ENUM_CONSTANT_DECL:
-                result["values"][value.spelling] = value.enum_value
+                result["enum_values"][value.spelling] = value.enum_value
             else:
                 self._log.debug("ENUM_DECL: Unhandled " + str(value.kind))
 
