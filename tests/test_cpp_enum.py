@@ -56,4 +56,5 @@ def test_parse_enum_in_namespace():
         assert len(result) == 1
         assert result[0].get('name') == 'Color'
         assert result[0].get('type') == 'enum'
+        assert result[0].get('qualified_name') == 'MyEnums::Color'
         assert len(result[0]['values'].keys()) == 3

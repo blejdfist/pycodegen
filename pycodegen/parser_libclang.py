@@ -102,10 +102,13 @@ class ParserLibClang:
     def _get_children(self, cursor):
         return [c for c in cursor.get_children() if c.location.file and c.location.file.name == self._current_filename]
 
-    def _handle_recurse(self, cursor):
+    def _handle_recurse(self, cursor, path=None):
+        if path is None:
+            path = []
+
         result = []
         for child in self._get_children(cursor, ):
-            child_data = self._traverse(child)
+            child_data = self._traverse(child, path + [cursor.spelling])
             if type(child_data) == list:
                 result += child_data
             else:
@@ -113,7 +116,7 @@ class ParserLibClang:
 
         return result
 
-    def _handle_enum_decl(self, cursor):
+    def _handle_enum_decl(self, cursor, path):
         result = {
             "name": cursor.spelling or cursor.displayname,
             "type": "enum",
@@ -121,6 +124,9 @@ class ParserLibClang:
             "extent": _get_extent(cursor),
             "values": {}
         }
+
+        if len(path) > 1:
+            result["qualified_name"] = "::".join(path[1:]) + "::" + cursor.spelling
 
         for value in self._get_children(cursor):
             if value.kind == CursorKind.ANNOTATE_ATTR:
@@ -132,7 +138,7 @@ class ParserLibClang:
 
         return result
 
-    def _traverse(self, cursor):
+    def _traverse(self, cursor, path=None):
         handler = self._handlers.get(cursor.kind)
         if handler:
-            return handler(cursor)
+            return handler(cursor, path)
