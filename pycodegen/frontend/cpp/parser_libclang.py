@@ -127,6 +127,8 @@ class ParserLibClang:
 
         if len(path) > 1:
             result["qualified_name"] = "::".join(path[1:]) + "::" + cursor.spelling
+        else:
+            result["qualified_name"] = result["name"]
 
         for value in self._get_children(cursor):
             if value.kind == CursorKind.ANNOTATE_ATTR:
