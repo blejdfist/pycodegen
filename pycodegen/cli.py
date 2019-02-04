@@ -15,7 +15,7 @@ def do_run_generator(frontend, input_file, options):
     :param input_file: Input file to pass to frontend
     :param options: Options parsed from commandline
     """
-    result = frontend.run(input_file, options)
+    result = frontend.run(input_file, vars(options))
 
     try:
         run_driver(input_data=result,

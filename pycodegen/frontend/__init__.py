@@ -5,6 +5,10 @@ ALL_FRONTENDS = {
 }
 
 
+def get_frontend_by_name(name):
+    return ALL_FRONTENDS.get(name)
+
+
 def register_frontends(subparsers):
     """
     Register all frontends in the commandline parser

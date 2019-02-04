@@ -1,5 +1,5 @@
 import tempfile
-from pycodegen.frontend.cpp import parser_libclang
+from pycodegen.frontend import get_frontend_by_name
 
 
 def test_parse_enum_class():
@@ -11,8 +11,8 @@ def test_parse_enum_class():
         """)
         f.file.flush()
 
-        parser = parser_libclang.ParserLibClang()
-        result = parser.parse(f.name)
+        frontend = get_frontend_by_name("cpp")
+        result = frontend.run(f.name)
 
         assert len(result) == 1
         assert result[0].get('name') == 'Color'
@@ -31,8 +31,8 @@ def test_parse_enum():
         """)
         f.file.flush()
 
-        parser = parser_libclang.ParserLibClang()
-        result = parser.parse(f.name)
+        frontend = get_frontend_by_name("cpp")
+        result = frontend.run(f.name)
 
         assert len(result) == 1
         assert result[0].get('name') == 'Color'
@@ -52,8 +52,8 @@ def test_parse_enum_in_namespace():
         """)
         f.file.flush()
 
-        parser = parser_libclang.ParserLibClang()
-        result = parser.parse(f.name)
+        frontend = get_frontend_by_name("cpp")
+        result = frontend.run(f.name)
 
         assert len(result) == 1
         assert result[0].get('name') == 'Color'
