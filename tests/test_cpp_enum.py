@@ -1,5 +1,5 @@
 import tempfile
-from .context import parser_libclang
+from pycodegen.frontend.cpp import parser_libclang
 
 
 def test_parse_enum_class():
