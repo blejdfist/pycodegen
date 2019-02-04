@@ -37,6 +37,8 @@ def main():
 
     if options.debug:
         logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig()
 
     if options.frontend:
         do_run_generator(options.frontend, options.input_file, options)
