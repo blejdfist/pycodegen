@@ -28,7 +28,7 @@ def do_run_generator(frontend, input_file, options):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.set_defaults(frontend=None)
+    parser.set_defaults(frontend=None, debug=False)
     subparsers = parser.add_subparsers()
 
     register_frontends(subparsers)
