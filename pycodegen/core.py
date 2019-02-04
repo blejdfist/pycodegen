@@ -1,6 +1,6 @@
 import os
+import sys
 import logging
-import importlib.util
 
 from .driver_base import DriverEnvironment
 
@@ -8,11 +8,19 @@ log = logging.getLogger(__name__)
 
 
 def load_driver(driver_filename):
-    spec = importlib.util.spec_from_file_location(".", driver_filename)
-    driver_module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(driver_module)
+    if not os.path.exists(driver_filename):
+        log.error("Driver does not exist")
+        return
 
-    return driver_module
+    if sys.version_info >= (3, 1):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(".", driver_filename)
+        driver_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(driver_module)
+        return driver_module
+    else:
+        import imp
+        return imp.load_source("module", driver_filename)
 
 
 def run_driver(input_data, driver_filename, input_filename=None, output_dir=None):
@@ -26,6 +34,9 @@ def run_driver(input_data, driver_filename, input_filename=None, output_dir=None
     """
     # Load driver script
     driver_module = load_driver(driver_filename)
+
+    if not driver_module:
+        raise RuntimeError("Unable to load driver")
 
     if not hasattr(driver_module, "create"):
         raise RuntimeError("Driver does not have a 'create' method")
