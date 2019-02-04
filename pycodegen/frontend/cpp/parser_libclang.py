@@ -39,7 +39,7 @@ def _get_extent(cursor):
 
 
 class ParserLibClang:
-    _log = logging.getLogger('CppAstTraverser')
+    _log = logging.getLogger(__name__)
 
     def __init__(self, library_file=None):
         self._current_filename = None
