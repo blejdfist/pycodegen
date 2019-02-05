@@ -1,6 +1,7 @@
 import clang.cindex
 from clang.cindex import CursorKind
 import logging
+import glob
 
 
 def _parse_annotation(annotation):
@@ -38,6 +39,16 @@ def _get_extent(cursor):
     }
 
 
+def _detect_library_file():
+    candidates = glob.glob("/usr/lib/llvm-*/lib/libclang*.so*")
+
+    if not candidates:
+        raise RuntimeError("Unable to find libclang")
+
+    candidates.sort()
+    return candidates[0]
+
+
 class ParserLibClang:
     _log = logging.getLogger(__name__)
 
@@ -46,8 +57,9 @@ class ParserLibClang:
 
         if not clang.cindex.Config.loaded:
             if library_file is None:
-                library_file = self._detect_library_file()
+                library_file = _detect_library_file()
 
+            self._log.debug("Using libclang from: %s", library_file)
             clang.cindex.Config.set_library_file(library_file)
 
         self._handlers = {
@@ -55,9 +67,6 @@ class ParserLibClang:
             CursorKind.NAMESPACE: self._handle_recurse,
             CursorKind.ENUM_DECL: self._handle_enum_decl
         }
-
-    def _detect_library_file(self):
-        return "/usr/lib/x86_64-linux-gnu/libclang-7.so.1"
 
     def dump(self, filename, arguments=None):
         """
