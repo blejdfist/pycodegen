@@ -1,0 +1,70 @@
+version: 2.1
+
+jobs:
+  test-python34:
+    docker:
+      - image: python:3.4-stretch
+    steps:
+      - checkout
+      - install-dependencies
+      - run-tox-test:
+          py: "py34"
+
+  test-python35:
+    docker:
+      - image: python:3.5-stretch
+    steps:
+      - checkout
+      - install-dependencies
+      - run-tox-test:
+          py: "py35"
+
+  test-python36:
+    docker:
+      - image: python:3.6-stretch
+    steps:
+      - checkout
+      - install-dependencies
+      - run-tox-test:
+          py: "py36"
+
+  test-python37:
+    docker:
+      - image: python:3.7-stretch
+    steps:
+      - checkout
+      - install-dependencies
+      - run-tox-test:
+          py: "py37"
+
+commands:
+  install-dependencies:
+    description: "Install LLVM/Clang and tox"
+    steps:
+      - run: apt-key adv --fetch-keys https://apt.llvm.org/llvm-snapshot.gpg.key
+      - run: echo "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-5.0 main" >> /etc/apt/sources.list.d/llvm.list
+      - run: echo "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-6.0 main" >> /etc/apt/sources.list.d/llvm.list
+      - run: echo "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-7 main" >> /etc/apt/sources.list.d/llvm.list
+      - run: echo "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-8 main" >> /etc/apt/sources.list.d/llvm.list
+      - run: apt update && apt install -y libclang1-5.0 libclang1-6.0 libclang1-7 libclang1-8
+      - run: pip install tox
+  run-tox-test:
+    description: "Run tox tests"
+    parameters:
+      py:
+        type: string
+    steps:
+      - run: TOXENV=$(tox --listenvs | grep "^<< parameters.py >>") tox -p auto
+      - store_test_results:
+          path: test-results
+
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - test-python34
+      - test-python35
+      - test-python36
+      - test-python37
+

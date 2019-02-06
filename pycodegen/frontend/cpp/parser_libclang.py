@@ -1,3 +1,5 @@
+import os
+
 import clang.cindex
 from clang.cindex import CursorKind
 import logging
@@ -40,7 +42,8 @@ def _get_extent(cursor):
 
 
 def _detect_library_file():
-    candidates = glob.glob("/usr/lib/llvm-*/lib/libclang*.so*")
+    version = os.getenv("PYCODEGEN_LIBCLANG", "")
+    candidates = glob.glob("/usr/lib/llvm-{version}*/lib/libclang*.so*".format(version=version))
 
     if not candidates:
         raise RuntimeError("Unable to find libclang")
