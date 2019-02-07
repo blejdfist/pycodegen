@@ -24,7 +24,7 @@ def visit(cursor, qualified_path, context):
     }
 
     if len(qualified_path) > 1:
-        result["qualified_name"] = "::".join(qualified_path[1:]) + "::" + cursor.spelling
+        result["qualified_name"] = helpers.make_qualified_name(qualified_path, cursor.spelling)
     else:
         result["qualified_name"] = result["name"]
 
