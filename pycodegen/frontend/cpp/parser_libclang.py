@@ -1,3 +1,4 @@
+import collections
 import os
 
 import clang.cindex
@@ -5,40 +6,7 @@ from clang.cindex import CursorKind
 import logging
 import glob
 
-
-def _parse_annotation(annotation):
-    parts = annotation.split(",")
-
-    if parts:
-        values = [p.split("=") for p in parts]
-    else:
-        values = [(annotation, True)]
-
-    result = {}
-
-    for value in values:
-        if len(value) == 2:
-            result[value[0]] = value[1]
-        else:
-            result[value[0]] = True
-
-    return result
-
-
-def _get_extent(cursor):
-    return {
-        "file": cursor.extent.start.file.name,
-        "start": {
-            "offset": cursor.extent.start.offset,
-            "line": cursor.extent.start.line,
-            "column": cursor.extent.start.column,
-        },
-        "end": {
-            "offset": cursor.extent.end.offset,
-            "line": cursor.extent.end.line,
-            "column": cursor.extent.end.column
-        },
-    }
+from . import helpers
 
 
 def _detect_library_file():
@@ -52,11 +20,14 @@ def _detect_library_file():
     return candidates[0]
 
 
+ParserContext = collections.namedtuple("ParserContext", ["input_file"])
+
+
 class ParserLibClang:
     _log = logging.getLogger(__name__)
 
     def __init__(self, library_file=None):
-        self._current_filename = None
+        self._context = None
 
         if not clang.cindex.Config.loaded:
             if library_file is None:
@@ -86,8 +57,11 @@ class ParserLibClang:
                 name=c.spelling or c.displayname,
                 extra=c.kind.name)
 
+        def get_children(c):
+            return helpers.get_children(c, self._context)
+
         translation_unit = self._parse_file(filename, extra_arguments=arguments)
-        return asciitree.draw_tree(translation_unit.cursor, self._get_children, format_node)
+        return asciitree.draw_tree(translation_unit.cursor, get_children, format_node)
 
     def parse(self, filename, arguments=None):
         """
@@ -101,25 +75,24 @@ class ParserLibClang:
         return self._traverse(translation_unit.cursor)
 
     def _parse_file(self, filename, extra_arguments):
-        self._current_filename = filename
+        self._context = ParserContext(input_file=filename)
         index = clang.cindex.Index.create()
 
         arguments = ["-x", "c++", "-D__CODEGEN__"]
         if extra_arguments is not None:
             arguments += extra_arguments
 
-        translation_unit = index.parse(filename, args=arguments, options=0)
-        return translation_unit
+        options = clang.cindex.TranslationUnit.PARSE_SKIP_FUNCTION_BODIES
 
-    def _get_children(self, cursor):
-        return [c for c in cursor.get_children() if c.location.file and c.location.file.name == self._current_filename]
+        translation_unit = index.parse(filename, args=arguments, options=options)
+        return translation_unit
 
     def _handle_recurse(self, cursor, path=None):
         if path is None:
             path = []
 
         result = []
-        for child in self._get_children(cursor, ):
+        for child in helpers.get_children(cursor, self._context):
             child_data = self._traverse(child, path + [cursor.spelling])
             if type(child_data) == list:
                 result += child_data
@@ -133,7 +106,7 @@ class ParserLibClang:
             "name": cursor.spelling or cursor.displayname,
             "type": "enum",
             "underlying_type": cursor.enum_type.spelling,
-            "extent": _get_extent(cursor),
+            "extent": helpers.get_extent(cursor),
             "enum_values": {}
         }
 
@@ -142,9 +115,9 @@ class ParserLibClang:
         else:
             result["qualified_name"] = result["name"]
 
-        for value in self._get_children(cursor):
+        for value in helpers.get_children(cursor, self._context):
             if value.kind == CursorKind.ANNOTATE_ATTR:
-                result["annotations"] = _parse_annotation(value.spelling)
+                result["annotations"] = helpers.parse_annotation(value.spelling)
             elif value.kind == CursorKind.ENUM_CONSTANT_DECL:
                 result["enum_values"][value.spelling] = value.enum_value
             else:
