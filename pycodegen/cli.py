@@ -1,5 +1,6 @@
 import logging
 import argparse
+import json
 
 from pycodegen.core import run_driver
 from pycodegen.frontend import register_frontends
@@ -15,15 +16,21 @@ def do_run_generator(frontend, input_file, options):
     :param input_file: Input file to pass to frontend
     :param options: Options parsed from commandline
     """
+
+    log.debug("Executing frontend")
     result = frontend.run(input_file, vars(options))
 
-    try:
-        run_driver(input_data=result,
-                   driver_filename=options.driver_script,
-                   input_filename=input_file,
-                   output_dir=options.output_dir)
-    except RuntimeError as e:
-        log.error("Error while running driver: %s", str(e))
+    if options.dump_json:
+        print(json.dumps(result, indent=2))
+
+    if options.driver:
+        try:
+            run_driver(input_data=result,
+                       driver_filename=options.driver,
+                       input_filename=input_file,
+                       output_dir=options.output_dir)
+        except RuntimeError as e:
+            log.error("Error while running driver: %s", str(e))
 
 
 def main():
@@ -41,6 +48,9 @@ def main():
         logging.basicConfig()
 
     if options.frontend:
+        if not (options.driver or options.dump_json):
+            parser.error("No action given. You must specify '--driver' or '--dump-json'")
+
         do_run_generator(options.frontend, options.input_file, options)
     else:
         parser.print_help()

@@ -18,12 +18,23 @@ def register_frontends(subparsers):
     for name, module in ALL_FRONTENDS.items():
         frontend_parser = subparsers.add_parser(name)
 
-        frontend_parser.add_argument("--debug", action="store_true", default=False, help="Enable debug logging")
-        frontend_parser.add_argument("--output-dir", metavar="DIR", help="Output directory")
+        frontend_parser.add_argument("--debug",
+                                     default=False,
+                                     action="store_true",
+                                     help="Enable debug logging")
+
+        frontend_parser.add_argument("--dump-json",
+                                     default=False,
+                                     action='store_true',
+                                     help="Dump intermediate data as JSON instead of passing it to the driver")
+
+        frontend_parser.add_argument("--driver", metavar="DRIVER_SCRIPT", help="Driver Python script")
+
+        frontend_parser.add_argument("--output-dir",
+                                     metavar="DIR",
+                                     help="Output directory")
 
         frontend_parser.add_argument("input_file", metavar="INPUT_FILE", help="Input file to frontend")
-        frontend_parser.add_argument("driver_script", metavar="DRIVER_SCRIPT", help="Driver python script")
-
         frontend_parser.set_defaults(frontend=module)
 
         module.register_arguments(frontend_parser)
