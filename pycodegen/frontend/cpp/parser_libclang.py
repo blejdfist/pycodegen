@@ -8,6 +8,7 @@ import glob
 
 from . import helpers
 from . import enum_decl
+from . import class_decl
 
 
 def _detect_library_file():
@@ -102,4 +103,8 @@ class ParserLibClang:
             return self._handle_recurse(cursor, qualified_path)
         elif cursor.kind == CursorKind.ENUM_DECL:
             return enum_decl.visit(cursor, qualified_path, self._context)
+        elif cursor.kind == CursorKind.CLASS_DECL:
+            return class_decl.visit(cursor, qualified_path, self._context)
+        else:
+            self._log.warning("Unhandled " + str(cursor.kind))
 
