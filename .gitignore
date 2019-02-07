@@ -1,0 +1,7 @@
+.idea
+.eggs
+.pytest_cache
+.tox
+dist
+venv
+test-results
