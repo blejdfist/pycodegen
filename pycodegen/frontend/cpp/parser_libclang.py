@@ -7,6 +7,7 @@ import logging
 import glob
 
 from . import helpers
+from . import enum_decl
 
 
 def _detect_library_file():
@@ -35,12 +36,6 @@ class ParserLibClang:
 
             self._log.debug("Using libclang from: %s", library_file)
             clang.cindex.Config.set_library_file(library_file)
-
-        self._handlers = {
-            CursorKind.TRANSLATION_UNIT: self._handle_recurse,
-            CursorKind.NAMESPACE: self._handle_recurse,
-            CursorKind.ENUM_DECL: self._handle_enum_decl
-        }
 
     def dump(self, filename, arguments=None):
         """
@@ -101,31 +96,10 @@ class ParserLibClang:
 
         return result
 
-    def _handle_enum_decl(self, cursor, path):
-        result = {
-            "name": cursor.spelling or cursor.displayname,
-            "type": "enum",
-            "underlying_type": cursor.enum_type.spelling,
-            "extent": helpers.get_extent(cursor),
-            "enum_values": {}
-        }
+    def _traverse(self, cursor, qualified_path=None):
+        if cursor.kind in [CursorKind.TRANSLATION_UNIT,
+                           CursorKind.NAMESPACE]:
+            return self._handle_recurse(cursor, qualified_path)
+        elif cursor.kind == CursorKind.ENUM_DECL:
+            return enum_decl.visit(cursor, qualified_path, self._context)
 
-        if len(path) > 1:
-            result["qualified_name"] = "::".join(path[1:]) + "::" + cursor.spelling
-        else:
-            result["qualified_name"] = result["name"]
-
-        for value in helpers.get_children(cursor, self._context):
-            if value.kind == CursorKind.ANNOTATE_ATTR:
-                result["annotations"] = helpers.parse_annotation(value.spelling)
-            elif value.kind == CursorKind.ENUM_CONSTANT_DECL:
-                result["enum_values"][value.spelling] = value.enum_value
-            else:
-                self._log.debug("ENUM_DECL: Unhandled " + str(value.kind))
-
-        return result
-
-    def _traverse(self, cursor, path=None):
-        handler = self._handlers.get(cursor.kind)
-        if handler:
-            return handler(cursor, path)
