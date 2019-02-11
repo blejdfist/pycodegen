@@ -1,5 +1,5 @@
+"""C/C++ parser frontend based on libclang"""
 import argparse
-
 from .parser_libclang import ParserLibClang
 
 

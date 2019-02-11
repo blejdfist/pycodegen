@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.set_defaults(frontend=None, debug=False)
+    parser.set_defaults(frontend_name=None, debug=False)
     subparsers = parser.add_subparsers()
 
     register_frontends(subparsers)
@@ -25,7 +25,7 @@ def main():
     else:
         logging.basicConfig()
 
-    if options.frontend:
+    if options.frontend_name:
         if not (options.driver or options.dump_json):
             parser.error("No action given. You must specify '--driver' or '--dump-json'")
 

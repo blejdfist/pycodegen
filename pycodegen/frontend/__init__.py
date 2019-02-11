@@ -1,7 +1,7 @@
-from . import cpp
+from . import frontend_cpp
 
 ALL_FRONTENDS = {
-    "cpp": cpp
+    "cpp": frontend_cpp
 }
 
 
@@ -12,7 +12,7 @@ def register_frontends(subparsers):
     :param subparsers: ArgumentParser subparsers instance
     """
     for name, module in ALL_FRONTENDS.items():
-        frontend_parser = subparsers.add_parser(name)
+        frontend_parser = subparsers.add_parser(name, help=module.__doc__)
 
         frontend_parser.add_argument("--debug",
                                      default=False,
@@ -31,6 +31,6 @@ def register_frontends(subparsers):
                                      help="Output directory")
 
         frontend_parser.add_argument("input_file", metavar="INPUT_FILE", help="Input file to frontend")
-        frontend_parser.set_defaults(frontend=module, frontend_name=name)
+        frontend_parser.set_defaults(frontend_name=name)
 
         module.register_arguments(frontend_parser)
