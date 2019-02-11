@@ -5,10 +5,6 @@ ALL_FRONTENDS = {
 }
 
 
-def get_frontend_by_name(name):
-    return ALL_FRONTENDS.get(name)
-
-
 def register_frontends(subparsers):
     """
     Register all frontends in the commandline parser
@@ -35,6 +31,6 @@ def register_frontends(subparsers):
                                      help="Output directory")
 
         frontend_parser.add_argument("input_file", metavar="INPUT_FILE", help="Input file to frontend")
-        frontend_parser.set_defaults(frontend=module)
+        frontend_parser.set_defaults(frontend=module, frontend_name=name)
 
         module.register_arguments(frontend_parser)

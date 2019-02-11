@@ -1,5 +1,5 @@
 import tempfile
-from pycodegen.frontend import get_frontend_by_name
+from pycodegen import get_frontend_by_name
 
 
 def test_parse_enum_class():

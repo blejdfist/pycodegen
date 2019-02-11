@@ -1,36 +1,14 @@
 import logging
 import argparse
 import json
+import os
+import sys
 
-from pycodegen.core import run_driver
+from pycodegen import get_frontend_by_name, load_driver
 from pycodegen.frontend import register_frontends
+from pycodegen.driver_base import DriverEnvironment
 
 log = logging.getLogger(__name__)
-
-
-def do_run_generator(frontend, input_file, options):
-    """
-    Run the selected frontend and pass the result to the driver
-
-    :param frontend: Frontend module to execute
-    :param input_file: Input file to pass to frontend
-    :param options: Options parsed from commandline
-    """
-
-    log.debug("Executing frontend")
-    result = frontend.run(input_file, vars(options))
-
-    if options.dump_json:
-        print(json.dumps(result, indent=2))
-
-    if options.driver:
-        try:
-            run_driver(input_data=result,
-                       driver_filename=options.driver,
-                       input_filename=input_file,
-                       output_dir=options.output_dir)
-        except RuntimeError as e:
-            log.error("Error while running driver: %s", str(e))
 
 
 def main():
@@ -51,7 +29,30 @@ def main():
         if not (options.driver or options.dump_json):
             parser.error("No action given. You must specify '--driver' or '--dump-json'")
 
-        do_run_generator(options.frontend, options.input_file, options)
+        # Load frontend
+        frontend_module = get_frontend_by_name(options.frontend_name)
+        if frontend_module is None:
+            log.error("Unable to load the frontend '%s'", options.frontend_name)
+            sys.exit(1)
+
+        # Run frontend
+        frontend_result = frontend_module.run(options.input_file, vars(options))
+
+        if options.dump_json:
+            print(json.dumps(frontend_result, indent=2))
+
+        if options.driver:
+            # Instantiate driver
+            env = DriverEnvironment(
+                working_dir=os.getcwd(),
+                driver_dir=os.path.dirname(options.driver),
+                output_dir=options.output_dir)
+
+            # Load and run driver
+            driver_module = load_driver(options.driver)
+            driver_instance = driver_module.create(env)
+            driver_instance.render(options.input_file, frontend_result)
+
     else:
         parser.print_help()
 

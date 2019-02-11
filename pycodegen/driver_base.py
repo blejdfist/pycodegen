@@ -2,11 +2,12 @@ from jinja2 import Environment, FileSystemLoader
 from collections import namedtuple
 import os
 import logging
+from abc import ABC, abstractmethod
 
 DriverEnvironment = namedtuple("DriverEnvironment", ["working_dir", "driver_dir", "output_dir"])
 
 
-class DriverBase:
+class DriverBase(ABC):
     """Base class for driver scripts"""
 
     log = logging.getLogger(__name__)
@@ -39,3 +40,7 @@ class DriverBase:
 
         with open(output_file, "w") as fp:
             fp.write(result)
+
+    @abstractmethod
+    def render(self, input_filename, data):
+        pass
