@@ -13,7 +13,7 @@ def load_driver(driver_filename):
 
     if sys.version_info >= (3, 1):
         import importlib.util
-        spec = importlib.util.spec_from_file_location(".", driver_filename)
+        spec = importlib.util.spec_from_file_location(driver_filename, driver_filename)
         driver_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(driver_module)
         return driver_module
