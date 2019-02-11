@@ -1,7 +1,9 @@
 from . import frontend_cpp
+from . import frontend_json
 
 ALL_FRONTENDS = {
-    "cpp": frontend_cpp
+    "cpp": frontend_cpp,
+    "json": frontend_json
 }
 
 
