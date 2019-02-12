@@ -17,16 +17,22 @@ def register_frontends(subparsers):
         frontend_parser = subparsers.add_parser(name, help=module.__doc__)
 
         frontend_parser.add_argument("--debug",
-                                     default=False,
                                      action="store_true",
                                      help="Enable debug logging")
 
         frontend_parser.add_argument("--dump-json",
-                                     default=False,
-                                     action='store_true',
+                                     action="store_true",
                                      help="Dump intermediate data as JSON instead of passing it to the driver")
 
         frontend_parser.add_argument("--driver", metavar="DRIVER_SCRIPT", help="Driver Python script")
+
+        frontend_parser.add_argument("--list-deps",
+                                     action="store_true",
+                                     help="Print a list of dependencies [Requires --driver]")
+
+        frontend_parser.add_argument("--list-output",
+                                     action="store_true",
+                                     help="Print a list of generated files [Requires --driver]")
 
         frontend_parser.add_argument("--output-dir",
                                      metavar="DIR",
