@@ -20,16 +20,19 @@ To get started:
 Frontend  Description
 ========  ================================================
 cpp       Parses C/C++ using libclang
-json      Passes a json file directoy to the driver
+json      Passes a JSON file directly to the driver
 ========  ================================================
 
 
 How it works
 ------------
 
-Pycodegen works by passing a file through a frontend for parsing. This can example be a C++ file passed through the cpp frontend to produce a simplified representation of the file.
-
-The result from the frontend is then passed to a driver that optionally process the representation for before it is rendered through a template that the driver decides.
+  1. The requested frontend reads the input file and generates an intermediate
+     representation.
+  2. The representation is passed to the driver
+  3. Driver does any processing required of the representation.
+  4. Driver selects the output filename and template to be used and
+     render the output file.
 
 
 Example usage
@@ -39,7 +42,7 @@ Example usage
 
     # Generate the simple JSON example
     pycodegen json examples/simple/input_file.json --driver examples/simple/driver.py --debug
-    
+
     # Get intermediate representation of a C++ file (to aid in driver development)
     pycodegen cpp <name-of-file.cpp> --dump-json
 
