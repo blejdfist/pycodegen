@@ -2,10 +2,10 @@ from jinja2 import Environment, FileSystemLoader
 from collections import namedtuple
 import os
 import logging
-from typing import List
 from abc import ABC, abstractmethod
 
 DriverEnvironment = namedtuple("DriverEnvironment", ["working_dir", "driver_dir", "output_dir", "input_filename"])
+
 
 class DriverBase(ABC):
     """Base class for driver scripts"""
@@ -50,7 +50,7 @@ class DriverBase(ABC):
         pass
 
     @abstractmethod
-    def get_dependencies(self) -> List[str]:
+    def get_dependencies(self):
         """
         :return: List of dependencies to be used by a build system to know when files need to be re-generated.
                  This should normally include the templates used.
@@ -58,7 +58,7 @@ class DriverBase(ABC):
         pass
 
     @abstractmethod
-    def get_generated_files(self) -> List[str]:
+    def get_generated_files(self):
         """
         :return: List of generated files to be used by a build system to know what files would be generated.
         """

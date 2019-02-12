@@ -1,7 +1,6 @@
 import os
 import datetime
 import logging
-from typing import List
 
 from pycodegen import DriverBase
 
@@ -22,10 +21,10 @@ class SimpleDriver(DriverBase):
         output_file = self._make_output_path("output.txt")
         self.render_to_file(TEMPLATE_FILE, data, output_file)
 
-    def get_dependencies(self) -> List[str]:
+    def get_dependencies(self):
         return [TEMPLATE_FILE]
 
-    def get_generated_files(self) -> List[str]:
+    def get_generated_files(self):
         return [self._make_output_path("output.txt")]
 
     def _make_output_path(self, filename):

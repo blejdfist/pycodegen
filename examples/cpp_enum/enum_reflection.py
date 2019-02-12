@@ -1,6 +1,5 @@
 import os
 import logging
-from typing import List
 
 from pycodegen import DriverBase
 
@@ -25,10 +24,10 @@ class EnumReflectionGenerator(DriverBase):
         log.debug("Rendering to %s", output_filename)
         self.render_to_file(TEMPLATE_FILE, result, output_filename)
 
-    def get_dependencies(self) -> List[str]:
+    def get_dependencies(self):
         return [TEMPLATE_FILE]
 
-    def get_generated_files(self) -> List[str]:
+    def get_generated_files(self):
         return [make_output_name(self.environment.input_filename)]
 
 
