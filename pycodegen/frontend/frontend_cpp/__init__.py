@@ -7,8 +7,11 @@ log = logging.getLogger(__name__)
 
 
 def register_arguments(argument_parser):
-    argument_parser.add_argument("--args", nargs=argparse.REMAINDER, help="Arguments to pass to clang")
-    argument_parser.add_argument("--print-ast", action="store_true", default=False, help="Print AST to console")
+    argument_parser.add_argument("--args", nargs=argparse.REMAINDER,
+                                 help="Arguments to pass to clang")
+
+    argument_parser.add_argument("--print-ast", action="store_true",
+                                 help="Print AST to console")
 
 
 def run(filename, options=None):

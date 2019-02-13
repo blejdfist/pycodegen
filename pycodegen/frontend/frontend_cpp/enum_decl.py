@@ -17,16 +17,12 @@ def visit(cursor, qualified_path, context):
     """
     result = {
         "name": cursor.spelling or cursor.displayname,
+        "qualified_name": helpers.make_qualified_name(qualified_path, cursor),
         "type": "enum",
         "underlying_type": cursor.enum_type.spelling,
         "extent": helpers.get_extent(cursor),
         "enum_values": {}
     }
-
-    if len(qualified_path) > 1:
-        result["qualified_name"] = helpers.make_qualified_name(qualified_path, cursor.spelling)
-    else:
-        result["qualified_name"] = result["name"]
 
     for value in helpers.get_children(cursor, context):
         if value.kind == CursorKind.ANNOTATE_ATTR:

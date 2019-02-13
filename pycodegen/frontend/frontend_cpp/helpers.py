@@ -37,5 +37,8 @@ def get_children(cursor, context):
     return [c for c in cursor.get_children() if c.location.file and c.location.file.name == context.input_file]
 
 
-def make_qualified_name(qualified_path, name):
-    return "::".join(qualified_path[1:]) + "::" + name
+def make_qualified_name(qualified_path, node):
+    if len(qualified_path) > 1:
+        return "::".join(qualified_path[1:]) + "::" + node.spelling
+    else:
+        return node.spelling

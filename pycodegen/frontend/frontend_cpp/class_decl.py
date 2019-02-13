@@ -10,19 +10,24 @@ ACCESS_PUBLIC = "public"
 ACCESS_PROTECTED = "protected"
 
 
+def _get_access(cursor):
+    if cursor.access_specifier == AccessSpecifier.PUBLIC:
+        return ACCESS_PUBLIC
+    elif cursor.access_specifier == AccessSpecifier.PRIVATE:
+        return ACCESS_PRIVATE
+    elif cursor.access_specifier == AccessSpecifier.PROTECTED:
+        return ACCESS_PROTECTED
+
+
 def visit(cursor, qualified_path, context):
     result = {
         "name": cursor.spelling or cursor.displayname,
+        "qualified_name": helpers.make_qualified_name(qualified_path, cursor),
         "type": "class",
         "extent": helpers.get_extent(cursor),
         "fields": [],
         "methods": [],
     }
-
-    if len(qualified_path) > 1:
-        result["qualified_name"] = helpers.make_qualified_name(qualified_path, cursor.spelling)
-    else:
-        result["qualified_name"] = result["name"]
 
     for child in helpers.get_children(cursor, context):
         if child.kind == CursorKind.ANNOTATE_ATTR:
@@ -42,16 +47,10 @@ def visit(cursor, qualified_path, context):
 def visit_field(cursor, qualified_path):
     field_desc = {
         "name": cursor.spelling or cursor.displayname,
-        "qualified_name": helpers.make_qualified_name(qualified_path, cursor.spelling),
+        "qualified_name": helpers.make_qualified_name(qualified_path, cursor),
+        "access": _get_access(cursor),
         "type": cursor.type.spelling,
     }
-
-    if cursor.access_specifier == AccessSpecifier.PUBLIC:
-        field_desc["access"] = ACCESS_PUBLIC
-    elif cursor.access_specifier == AccessSpecifier.PRIVATE:
-        field_desc["access"] = ACCESS_PRIVATE
-    elif cursor.access_specifier == AccessSpecifier.PROTECTED:
-        field_desc["access"] = ACCESS_PROTECTED
 
     return field_desc
 
@@ -59,16 +58,11 @@ def visit_field(cursor, qualified_path):
 def visit_method(cursor, qualified_path):
     method_desc = {
         "name": cursor.spelling or cursor.displayname,
-        "qualified_name": helpers.make_qualified_name(qualified_path, cursor.spelling),
+        "qualified_name": helpers.make_qualified_name(qualified_path, cursor),
         "return_type": cursor.result_type.spelling,
+        "access": _get_access(cursor),
         "arguments": []
     }
-    if cursor.access_specifier == AccessSpecifier.PUBLIC:
-        method_desc["access"] = ACCESS_PUBLIC
-    elif cursor.access_specifier == AccessSpecifier.PRIVATE:
-        method_desc["access"] = ACCESS_PRIVATE
-    elif cursor.access_specifier == AccessSpecifier.PROTECTED:
-        method_desc["access"] = ACCESS_PROTECTED
 
     for child in cursor.get_children():
         if child.kind == CursorKind.PARM_DECL:
