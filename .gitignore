@@ -2,6 +2,8 @@
 .eggs
 .pytest_cache
 .tox
+*.egg-info
 dist
 venv
+build
 test-results

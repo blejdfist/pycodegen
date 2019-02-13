@@ -1,70 +1,135 @@
 version: 2.1
 
 jobs:
-  test-python34:
-    docker:
-      - image: python:3.4-stretch
-    steps:
-      - checkout
-      - install-dependencies
-      - run-tox-test:
-          py: "py34"
-
-  test-python35:
-    docker:
-      - image: python:3.5-stretch
-    steps:
-      - checkout
-      - install-dependencies
-      - run-tox-test:
-          py: "py35"
-
-  test-python36:
-    docker:
-      - image: python:3.6-stretch
-    steps:
-      - checkout
-      - install-dependencies
-      - run-tox-test:
-          py: "py36"
-
-  test-python37:
-    docker:
-      - image: python:3.7-stretch
-    steps:
-      - checkout
-      - install-dependencies
-      - run-tox-test:
-          py: "py37"
-
-commands:
-  install-dependencies:
-    description: "Install LLVM/Clang and tox"
-    steps:
-      - run: apt-key adv --fetch-keys https://apt.llvm.org/llvm-snapshot.gpg.key
-      - run: echo "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-5.0 main" >> /etc/apt/sources.list.d/llvm.list
-      - run: echo "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-6.0 main" >> /etc/apt/sources.list.d/llvm.list
-      - run: echo "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-7 main" >> /etc/apt/sources.list.d/llvm.list
-      - run: echo "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-8 main" >> /etc/apt/sources.list.d/llvm.list
-      - run: apt update && apt install -y libclang1-5.0 libclang1-6.0 libclang1-7 libclang1-8
-      - run: pip install tox
-  run-tox-test:
-    description: "Run tox tests"
+  test-python:
     parameters:
-      py:
+      version:
         type: string
+      tox_env:
+        type: string
+    docker:
+      - image: circleci/python:<< parameters.version >>
     steps:
-      - run: TOXENV=$(tox --listenvs | grep "^<< parameters.py >>") tox -p auto
+      - checkout
+      - run: sudo apt-key adv --fetch-keys https://apt.llvm.org/llvm-snapshot.gpg.key
+      - run:
+          command: |
+            echo "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-5.0 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
+            echo "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-6.0 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
+            echo "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-7 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
+            echo "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-8 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
+      - run: sudo apt update
+      - run: sudo apt install -y libclang1-5.0 libclang1-6.0 libclang1-7 libclang1-8
+      - run: sudo pip install tox
+      - run: TOXENV=$(tox --listenvs | grep "^<< parameters.tox_env >>") tox -p auto
       - store_test_results:
           path: test-results
 
+  build:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - run: python setup.py sdist bdist_wheel
+      - store_artifacts:
+          path: dist/
+      - persist_to_workspace:
+          root: dist/
+          paths:
+            - pycodegen-*.tar.gz
+            - pycodegen-*.whl
+
+  test-install:
+    parameters:
+      version:
+        type: string
+    docker:
+      - image: circleci/python:<< parameters.version >>
+    steps:
+      - attach_workspace:
+          at: /tmp/packages
+      - run: sudo pip install /tmp/packages/pycodegen-*.whl
+      - run: sudo pip install "pycodegen[CPP]"
+      - run: pycodegen -h
+
+  deploy-to-pypi:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - attach_workspace:
+          at: /tmp/packages
+      - restore_cache:
+          key: v1-pip-cache
+      - run: sudo pip install twine
+      - save_cache:
+          key: v1-pip-cache
+          paths:
+            - ~/.cache/pip
+      - run:
+          command: |
+            echo -e "[pypi]" >> ~/.pypirc
+            echo -e "username = $PYPI_USERNAME" >> ~/.pypirc
+            echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
+      - deploy:
+          command: twine upload /tmp/packages/*
 
 workflows:
   version: 2
-  build:
+  build_and_deploy:
     jobs:
-      - test-python34
-      - test-python35
-      - test-python36
-      - test-python37
+      - test-python:
+          name: test-python34
+          version: "3.4"
+          tox_env: "py34"
+      - test-python:
+          name: test-python35
+          version: "3.5"
+          tox_env: "py35"
+      - test-python:
+          name: test-python36
+          version: "3.6"
+          tox_env: "py36"
+      - test-python:
+          name: test-python37
+          version: "3.7"
+          tox_env: "py37"
 
+      - build:
+          requires:
+            - test-python34
+            - test-python35
+            - test-python36
+            - test-python37
+
+      - test-install:
+          name: test-install-python34
+          version: "3.4"
+          requires:
+            - build
+      - test-install:
+          name: test-install-python35
+          version: "3.5"
+          requires:
+            - build
+      - test-install:
+          name: test-install-python36
+          version: "3.6"
+          requires:
+            - build
+      - test-install:
+          name: test-install-python37
+          version: "3.7"
+          requires:
+            - build
+
+      - deploy-to-pypi:
+          requires:
+            - test-install-python34
+            - test-install-python35
+            - test-install-python36
+            - test-install-python37
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*/
+            branches:
+              ignore: /.*/

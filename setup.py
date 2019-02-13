@@ -5,10 +5,8 @@ from setuptools import setup, find_packages
 setup(
     name='pycodegen',
     version='0.0.1',
-    description='Code generator written in Python',
-    url='https://github.com/blejdfist/pycodegen',
     python_requires='>=3.4',
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests*']),
     entry_points={
         'console_scripts': ['pycodegen=pycodegen.cli:main']
     },
