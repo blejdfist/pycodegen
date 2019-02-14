@@ -8,7 +8,7 @@ from pycodegen import get_frontend_by_name, load_driver
 from pycodegen.frontend import register_frontends
 from pycodegen.driver_base import DriverEnvironment
 
-log = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 def main():
@@ -32,7 +32,7 @@ def main():
         # Load frontend
         frontend_module = get_frontend_by_name(options.frontend_name)
         if frontend_module is None:
-            log.error("Unable to load the frontend '%s'", options.frontend_name)
+            _LOGGER.error("Unable to load the frontend '%s'", options.frontend_name)
             sys.exit(1)
 
         # Run frontend if needed

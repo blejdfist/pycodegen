@@ -3,7 +3,7 @@ import argparse
 import logging
 import sys
 
-log = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 def register_arguments(argument_parser):
@@ -18,8 +18,8 @@ def run(filename, options=None):
     try:
         import clang.cindex
     except ModuleNotFoundError:
-        log.error("To use the C++ frontend you must have clang>=6.0.0 installed.")
-        log.error("Try installing it using: pip install 'pycodegen[CPP]'")
+        _LOGGER.error("To use the C++ frontend you must have clang>=6.0.0 installed.")
+        _LOGGER.error("Try installing it using: pip install 'pycodegen[CPP]'")
         sys.exit(1)
 
     from .parser_libclang import ParserLibClang

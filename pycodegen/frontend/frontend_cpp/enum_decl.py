@@ -3,7 +3,7 @@ from clang.cindex import CursorKind
 
 from . import helpers
 
-_log = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 def visit(cursor, qualified_path, context):
@@ -30,6 +30,6 @@ def visit(cursor, qualified_path, context):
         elif value.kind == CursorKind.ENUM_CONSTANT_DECL:
             result["enum_values"][value.spelling] = value.enum_value
         else:
-            _log.warning("Unhandled " + str(value.kind))
+            _LOGGER.warning("Unhandled %s", str(value.kind))
 
     return result

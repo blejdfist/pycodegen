@@ -1,14 +1,16 @@
+import logging
+import glob
 import collections
 import os
 
 import clang.cindex
 from clang.cindex import CursorKind
-import logging
-import glob
 
 from . import helpers
 from . import enum_decl
 from . import class_decl
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def _detect_library_file():
@@ -26,7 +28,6 @@ ParserContext = collections.namedtuple("ParserContext", ["input_file"])
 
 
 class ParserLibClang:
-    _log = logging.getLogger(__name__)
 
     def __init__(self, library_file=None):
         self._context = None
@@ -35,7 +36,7 @@ class ParserLibClang:
             if library_file is None:
                 library_file = _detect_library_file()
 
-            self._log.debug("Using libclang from: %s", library_file)
+            _LOGGER.debug("Using libclang from: %s", library_file)
             clang.cindex.Config.set_library_file(library_file)
 
     def dump(self, filename, arguments=None):
@@ -48,13 +49,13 @@ class ParserLibClang:
         """
         import asciitree
 
-        def format_node(c):
+        def format_node(cursor):
             return '{name:<10} ({extra})'.format(
-                name=c.spelling or c.displayname,
-                extra=c.kind.name)
+                name=cursor.spelling or cursor.displayname,
+                extra=cursor.kind.name)
 
-        def get_children(c):
-            return helpers.get_children(c, self._context)
+        def get_children(cursor):
+            return helpers.get_children(cursor, self._context)
 
         translation_unit = self._parse_file(filename, extra_arguments=arguments)
         return asciitree.draw_tree(translation_unit.cursor, get_children, format_node)
@@ -90,7 +91,7 @@ class ParserLibClang:
         result = []
         for child in helpers.get_children(cursor, self._context):
             child_data = self._traverse(child, path + [cursor.spelling])
-            if type(child_data) == list:
+            if isinstance(child_data, list):
                 result += child_data
             else:
                 result.append(child_data)
@@ -101,10 +102,12 @@ class ParserLibClang:
         if cursor.kind in [CursorKind.TRANSLATION_UNIT,
                            CursorKind.NAMESPACE]:
             return self._handle_recurse(cursor, qualified_path)
-        elif cursor.kind == CursorKind.ENUM_DECL:
-            return enum_decl.visit(cursor, qualified_path, self._context)
-        elif cursor.kind == CursorKind.CLASS_DECL:
-            return class_decl.visit(cursor, qualified_path, self._context)
-        else:
-            self._log.warning("Unhandled " + str(cursor.kind))
 
+        if cursor.kind == CursorKind.ENUM_DECL:
+            return enum_decl.visit(cursor, qualified_path, self._context)
+
+        if cursor.kind == CursorKind.CLASS_DECL:
+            return class_decl.visit(cursor, qualified_path, self._context)
+
+        _LOGGER.warning("Unhandled %s", str(cursor.kind))
+        return None

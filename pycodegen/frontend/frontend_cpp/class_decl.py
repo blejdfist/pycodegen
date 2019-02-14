@@ -3,7 +3,7 @@ from clang.cindex import CursorKind, AccessSpecifier
 
 from . import helpers
 
-_log = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 ACCESS_PRIVATE = "private"
 ACCESS_PUBLIC = "public"
@@ -13,10 +13,11 @@ ACCESS_PROTECTED = "protected"
 def _get_access(cursor):
     if cursor.access_specifier == AccessSpecifier.PUBLIC:
         return ACCESS_PUBLIC
-    elif cursor.access_specifier == AccessSpecifier.PRIVATE:
+    if cursor.access_specifier == AccessSpecifier.PRIVATE:
         return ACCESS_PRIVATE
-    elif cursor.access_specifier == AccessSpecifier.PROTECTED:
+    if cursor.access_specifier == AccessSpecifier.PROTECTED:
         return ACCESS_PROTECTED
+    return None
 
 
 def visit(cursor, qualified_path, context):
@@ -39,7 +40,7 @@ def visit(cursor, qualified_path, context):
         elif child.kind == CursorKind.CXX_ACCESS_SPEC_DECL:
             pass
         else:
-            _log.warning("Unhandled " + str(child.kind))
+            _LOGGER.warning("Unhandled %s", str(child.kind))
 
     return result
 

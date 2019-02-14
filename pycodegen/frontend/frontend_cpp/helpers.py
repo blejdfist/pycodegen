@@ -40,5 +40,5 @@ def get_children(cursor, context):
 def make_qualified_name(qualified_path, node):
     if len(qualified_path) > 1:
         return "::".join(qualified_path[1:]) + "::" + node.spelling
-    else:
-        return node.spelling
+
+    return node.spelling
