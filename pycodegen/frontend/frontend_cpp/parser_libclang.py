@@ -9,6 +9,7 @@ from clang.cindex import CursorKind
 from . import helpers
 from . import enum_decl
 from . import class_struct_decl
+from . import function_decl
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -91,10 +92,11 @@ class ParserLibClang:
         result = []
         for child in helpers.get_children(cursor, self._context):
             child_data = self._traverse(child, path + [cursor.spelling])
-            if isinstance(child_data, list):
-                result += child_data
-            else:
-                result.append(child_data)
+            if child_data is not None:
+                if isinstance(child_data, list):
+                    result += child_data
+                else:
+                    result.append(child_data)
 
         return result
 
@@ -108,6 +110,9 @@ class ParserLibClang:
 
         if cursor.kind in [CursorKind.CLASS_DECL, CursorKind.STRUCT_DECL]:
             return class_struct_decl.visit(cursor, qualified_path, self._context)
+
+        if cursor.kind in [CursorKind.FUNCTION_DECL]:
+            return function_decl.visit(cursor, qualified_path, self._context)
 
         _LOGGER.warning("Unhandled %s", str(cursor.kind))
         return None
