@@ -21,8 +21,9 @@ def _detect_library_file():
     if not candidates:
         raise RuntimeError("Unable to find libclang")
 
+    # Select the latest libclang version
     candidates.sort()
-    return candidates[0]
+    return candidates[-1]
 
 
 ParserContext = collections.namedtuple("ParserContext", ["input_file"])
