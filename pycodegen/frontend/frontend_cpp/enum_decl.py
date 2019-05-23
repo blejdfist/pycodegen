@@ -1,3 +1,4 @@
+"""Visitor for C/C++ enums"""
 import logging
 from clang.cindex import CursorKind
 

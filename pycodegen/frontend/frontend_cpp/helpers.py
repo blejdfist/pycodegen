@@ -1,10 +1,7 @@
 def parse_annotation(annotation):
     parts = annotation.split(",")
 
-    if parts:
-        values = [p.split("=") for p in parts]
-    else:
-        values = [(annotation, True)]
+    values = [part.split("=") for part in parts]
 
     result = {}
 

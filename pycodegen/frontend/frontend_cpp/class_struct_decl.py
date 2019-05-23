@@ -1,34 +1,25 @@
+"""Visitor for C++ classes"""
 import logging
-from clang.cindex import CursorKind, AccessSpecifier
+from clang.cindex import CursorKind
 
 from . import helpers
 
 _LOGGER = logging.getLogger(__name__)
-
-ACCESS_PRIVATE = "private"
-ACCESS_PUBLIC = "public"
-ACCESS_PROTECTED = "protected"
-
-
-def _get_access(cursor):
-    if cursor.access_specifier == AccessSpecifier.PUBLIC:
-        return ACCESS_PUBLIC
-    if cursor.access_specifier == AccessSpecifier.PRIVATE:
-        return ACCESS_PRIVATE
-    if cursor.access_specifier == AccessSpecifier.PROTECTED:
-        return ACCESS_PROTECTED
-    return None
 
 
 def visit(cursor, qualified_path, context):
     result = {
         "name": cursor.spelling or cursor.displayname,
         "qualified_name": helpers.make_qualified_name(qualified_path, cursor),
-        "type": "class",
         "extent": helpers.get_extent(cursor),
         "fields": [],
         "methods": [],
     }
+
+    if cursor.kind == CursorKind.CLASS_DECL:
+        result["type"] = "class"
+    elif cursor.kind == CursorKind.STRUCT_DECL:
+        result["type"] = "struct"
 
     for child in helpers.get_children(cursor, context):
         if child.kind == CursorKind.ANNOTATE_ATTR:
@@ -49,7 +40,7 @@ def visit_field(cursor, qualified_path):
     field_desc = {
         "name": cursor.spelling or cursor.displayname,
         "qualified_name": helpers.make_qualified_name(qualified_path, cursor),
-        "access": _get_access(cursor),
+        "access": cursor.access_specifier.name.lower(),
         "type": cursor.type.spelling,
     }
 
@@ -61,7 +52,7 @@ def visit_method(cursor, qualified_path):
         "name": cursor.spelling or cursor.displayname,
         "qualified_name": helpers.make_qualified_name(qualified_path, cursor),
         "return_type": cursor.result_type.spelling,
-        "access": _get_access(cursor),
+        "access": cursor.access_specifier.name.lower(),
         "arguments": []
     }
 

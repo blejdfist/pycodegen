@@ -8,7 +8,7 @@ from clang.cindex import CursorKind
 
 from . import helpers
 from . import enum_decl
-from . import class_decl
+from . import class_struct_decl
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -106,8 +106,8 @@ class ParserLibClang:
         if cursor.kind == CursorKind.ENUM_DECL:
             return enum_decl.visit(cursor, qualified_path, self._context)
 
-        if cursor.kind == CursorKind.CLASS_DECL:
-            return class_decl.visit(cursor, qualified_path, self._context)
+        if cursor.kind in [CursorKind.CLASS_DECL, CursorKind.STRUCT_DECL]:
+            return class_struct_decl.visit(cursor, qualified_path, self._context)
 
         _LOGGER.warning("Unhandled %s", str(cursor.kind))
         return None
