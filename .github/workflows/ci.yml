@@ -13,13 +13,10 @@ jobs:
       matrix:
         include:
           - container: ubuntu:22.04
-            install_deps: apt-get update && apt-get install -y curl libclang-dev
           - container: ubuntu:24.04
-            install_deps: apt-get update && apt-get install -y curl libclang-dev
+          - container: ubuntu:26.04
           - container: fedora:40
-            install_deps: dnf install -y clang-libs
           - container: fedora:41
-            install_deps: dnf install -y clang-libs
     container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v4
