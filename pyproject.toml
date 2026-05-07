@@ -30,7 +30,10 @@ requires-python = ">=3.9"
 dependencies = ["jinja2>=2.10"]
 
 [project.optional-dependencies]
-cpp = ["clang>=19,<=20"]
+cpp = [
+    "asciitree>=0.3.3",
+    "libclang>=16,<=20",
+]
 
 [dependency-groups]
 dev = [

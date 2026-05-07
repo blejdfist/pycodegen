@@ -1,7 +1,5 @@
 import logging
-import glob
 import collections
-import os
 
 import clang.cindex
 from clang.cindex import CursorKind
@@ -14,53 +12,13 @@ from . import function_decl
 _LOGGER = logging.getLogger(__name__)
 
 
-def _detect_library_file():
-    """Find the libclang shared library, returning the highest-versioned match."""
-    libclang = os.getenv("PYCODEGEN_LIBCLANG", "")
-
-    if libclang:
-        return libclang
-
-    # Patterns ordered from most-specific to most-generic.
-    patterns = [
-        # Debian/Ubuntu: /usr/lib/llvm-18/lib/libclang.so.1
-        "/usr/lib/llvm-*/lib/libclang.so*",
-        # Fedora/RHEL/Arch: /usr/lib64/libclang.so.18.x
-        "/usr/lib64/libclang.so*",
-        # Generic /usr/lib fallback
-        "/usr/lib/libclang.so*",
-    ]
-
-    candidates = []
-    for pattern in patterns:
-        candidates.extend(glob.glob(pattern))
-        if candidates:
-            break
-
-    if not candidates:
-        raise RuntimeError(
-            "Unable to find libclang. Install the clang development package "
-            "or set PYCODEGEN_LIBCLANG to the library path."
-        )
-
-    candidates.sort()
-    return candidates[-1]
-
-
 ParserContext = collections.namedtuple("ParserContext", ["input_file"])
 
 
 class ParserLibClang:
 
-    def __init__(self, library_file=None):
+    def __init__(self):
         self._context = None
-
-        if not clang.cindex.Config.loaded:
-            if library_file is None:
-                library_file = _detect_library_file()
-
-            _LOGGER.debug("Using libclang from: %s", library_file)
-            clang.cindex.Config.set_library_file(library_file)
 
     def dump(self, filename, arguments=None):
         """
