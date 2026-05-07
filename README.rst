@@ -46,8 +46,8 @@ Example usage
     pycodegen cpp <name-of-file.cpp> --dump-json
 
 
-.. |Build Status| image:: https://img.shields.io/circleci/project/github/blejdfist/pycodegen/master.svg?style=flat
-   :target: https://circleci.com/gh/blejdfist/pycodegen
+.. |Build Status| image:: https://github.com/blejdfist/pycodegen/actions/workflows/ci.yml/badge.svg?branch=master
+   :target: https://github.com/blejdfist/pycodegen/actions/workflows/ci.yml
 
 .. |PyPi Version| image:: https://img.shields.io/pypi/v/pycodegen.svg?style=flat
    :target: https://pypi.org/project/pycodegen/

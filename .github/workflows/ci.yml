@@ -1,0 +1,60 @@
+name: CI
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+on:
+  push:
+    branches: [master, gh-workflow]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        include:
+          - runs-on: ubuntu-latest
+            container: ubuntu:24.04
+          - runs-on: ubuntu-latest
+            container: ubuntu:26.04
+          - runs-on: ubuntu-latest
+            container: fedora:40
+          - runs-on: ubuntu-latest
+            container: fedora:41
+          - runs-on: macos-latest
+    runs-on: ${{ matrix.runs-on }}
+    container: ${{ matrix.container || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install system dependencies
+        run: ${{ matrix.install_deps }}
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --group dev --all-extras
+      - run: uv run nox
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  test-install:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - run: pip install dist/*.whl
+      - run: pycodegen -h
