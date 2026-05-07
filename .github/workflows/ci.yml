@@ -1,5 +1,8 @@
 name: CI
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     branches: [master, gh-workflow]
@@ -12,12 +15,17 @@ jobs:
     strategy:
       matrix:
         include:
-          - container: ubuntu:22.04
-          - container: ubuntu:24.04
-          - container: ubuntu:26.04
-          - container: fedora:40
-          - container: fedora:41
-    container: ${{ matrix.container }}
+          - runs-on: ubuntu-latest
+            container: ubuntu:24.04
+          - runs-on: ubuntu-latest
+            container: ubuntu:26.04
+          - runs-on: ubuntu-latest
+            container: fedora:40
+          - runs-on: ubuntu-latest
+            container: fedora:41
+          - runs-on: macos-latest
+    runs-on: ${{ matrix.runs-on }}
+    container: ${{ matrix.container || '' }}
     steps:
       - uses: actions/checkout@v4
       - name: Install system dependencies
