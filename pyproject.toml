@@ -12,7 +12,6 @@ authors = [{ name = "Jim Ekman", email = "jim@nurd.se" }]
 keywords = ["code generation", "libclang", "codegenerator"]
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
