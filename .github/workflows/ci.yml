@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - container: ubuntu:22.04
+            install_deps: apt-get update && apt-get install -y curl libclang-dev
+          - container: ubuntu:24.04
+            install_deps: apt-get update && apt-get install -y curl libclang-dev
+          - container: fedora:40
+            install_deps: dnf install -y clang-libs
+          - container: fedora:41
+            install_deps: dnf install -y clang-libs
+    container: ${{ matrix.container }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install system dependencies
+        run: ${{ matrix.install_deps }}
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --group dev --all-extras
+      - run: uv run nox
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  test-install:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - run: pip install dist/*.whl
+      - run: pycodegen -h
